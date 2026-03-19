@@ -31,7 +31,7 @@
  *   createDeliveryBatch()
  *     - Returns array of delivery objects for all ACTIVE customers
  *     - Each delivery: { customerId: id, name, address, mealPreference,
- *       batchTime: new Date().toISOString() }
+ *       batchTime: new Date().c() }
  *     - Resets delivered to false for all active customers before creating batch
  *     - Returns empty array if no active customers
  *
@@ -77,29 +77,110 @@
 export class DabbaService {
   constructor(serviceName, area) {
     // Your code here
+    this.serviceName = serviceName 
+    this.area = area 
+    this.customers = []
+    this._nextId = 1
   }
 
   addCustomer(name, address, mealPreference) {
     // Your code here
+    const mealPref = ['veg' , 'nonveg' , 'jain']
+    
+    if ( !mealPref.includes(mealPreference)  || this.customers.findIndex(ele => ele.name === name) !=-1){
+      return null 
+    }
+
+    let custObj = {
+      "id" : this._nextId++ , 
+      "name" : name ,
+      "address" : address , 
+      "mealPreference" : mealPreference , 
+      "active" : true , 
+      "delivered" : false 
+    }
+
+    this.customers.push(custObj)
+
+    return custObj
   }
 
   removeCustomer(name) {
     // Your code here
+    const nameIndex = this.customers.findIndex( (ele) => ele.name == name)
+
+    if (   nameIndex ==-1 || !this.customers.at(nameIndex)['active'] ){
+      return false
+    }
+
+    this.customers.at(nameIndex)['active']=false 
+    return true
   }
 
   createDeliveryBatch() {
     // Your code here
+
+    // const deliveryArr = []
+
+    this.customers.filter((ele) => ele.active === true ).forEach((ele) => ele.delivered = false)
+    const dt =new Date().toISOString()
+
+    return this.customers.filter((ele) => ele.active === true ).map((ele) => ({
+      customerId : ele.id , 
+      name : ele.name , 
+      address : ele.address , 
+      mealPreference : ele.mealPreference ,
+      batchTime :  dt
+    }))
   }
 
   markDelivered(customerId) {
     // Your code here
+    const nameIndex = this.customers.findIndex( (ele) => ele.id  == customerId)
+
+    if ( nameIndex ==-1 || !this.customers[nameIndex]['active'] ){
+      return false
+    }
+    this.customers.at(nameIndex)['delivered'] = true 
+
+    return true 
+
   }
 
   getDailyReport() {
     // Your code here
+
+    const mealCounts = { veg : 0 , nonveg : 0 , jain  : 0}
+
+    this.customers.filter((ele) => ele.active == true).forEach((ele) => {
+      if ( ele.mealPreference ==='veg'){
+        mealCounts['veg'] +=1
+      }
+      else if ( ele.mealPreference ==='nonveg'){
+        mealCounts['nonveg'] +=1
+      }
+      else if ( ele.mealPreference ==='jain'){
+        mealCounts['jain'] +=1
+      }
+    })
+
+    return { 
+      totalCustomers : this.customers.filter((ele) => ele.active == true).length,
+      delivered : this.customers.filter((ele) => (ele.active === true && ele.delivered===true )).length,
+      pending  :  this.customers.filter((ele) => (ele.active === true && ele.delivered===false  )).length,
+      mealBreakdown : mealCounts
+    }
   }
 
   getCustomer(name) {
     // Your code here
+    const nameIndex = this.customers.findIndex( (ele) => ele.name   === name)
+
+    if ( nameIndex ==-1){
+      return null 
+    }
+
+    return this.customers.at(nameIndex)
+
   }
 }
