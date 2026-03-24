@@ -135,7 +135,8 @@ export function demonstrateThisLoss(cart) {
   // Your code here
 
   const func = cart.sellItem
-  console.log(func()  );
+  // console.log(func()  );
+  return func
   
 }
 

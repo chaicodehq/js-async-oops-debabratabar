@@ -72,18 +72,89 @@
  *   //   { status: "rejected", reason: "Yeh chai available nahi hai!" }
  *   // ]
  */
+
+
 export function orderChai(type, quantity) {
   // Your code here
+  
+  return new Promise( (resolve , reject ) => {
+    let Prices = { cutting: 10, special: 20, ginger: 15, masala: 25 }
+
+    if ( !["cutting", "special", "ginger", "masala"].includes(type)){
+      reject(  new Error("Yeh chai available nahi hai!"))
+    }
+
+    if ( typeof quantity != 'number' || quantity <=0 ){
+      reject( new Error("Kitni chai chahiye bhai?"))
+    }
+
+    setTimeout(()=>{
+        resolve({type , quantity , total : Prices[type] * quantity })
+    } , 100)
+  })
 }
 
 export function checkIngredients(ingredient) {
   // Your code here
+
+   return new Promise( (resolve , reject ) => {
+    let ingredients = ["tea", "milk", "sugar", "ginger", "cardamom"]
+
+    if ( !ingredients.includes(ingredient)){
+      reject (new Error(`${ingredient} khatam ho gaya!`))
+    }
+
+    resolve({ ingredient, available: true })
+
+})
+
 }
 
 export function prepareChaiWithTimeout(type, timeoutMs) {
   // Your code here
+
+    const p1 = orderChai(type , 1) 
+    const p2 = new Promise(( resolve , reject) => setTimeout(()=>{
+      reject(new Error("Bahut der ho gayi, chai nahi bani!"))
+    } , timeoutMs))
+
+    return  Promise.race([p1 , p2])
+
+    
+
 }
 
-export function processChaiQueue(orders) {
+export async  function processChaiQueue(orders) {
   // Your code here
+
+  if ( orders.length == 0 ){
+    return Promise.resolve([])
+  }
+
+
+  const resultPromise = orders.map((ele) => 
+    orderChai(ele.type , ele.quantity)
+    // .catch((error) => { console.log(error.message)})
+    // .then((resolveVal) => ({ status : "fulfilled" , value : resolveVal }) )
+      
+  )
+
+  const res = await  Promise.allSettled(resultPromise)
+
+  const cleanRes =  res.map((ele) => { 
+    if (ele.status === 'rejected'){
+      
+      return {
+        status : 'rejected' , 
+        reason : ele.reason.message
+      }
+    };
+    
+      return ele;
+  })
+
+
+
+  return cleanRes
 }
+

@@ -1,3 +1,9 @@
-const menu = [1,3,4,5]
+const riderPool = ["Rahul", "Priya", "Amit", "Neha", "Vikram"]
 
-console.log(menu.includes(5))
+
+
+
+console.log( Math.floor(Math.random() * riderPool.length))
+
+
+console.log(  Math.floor(Math.random() * 3))
